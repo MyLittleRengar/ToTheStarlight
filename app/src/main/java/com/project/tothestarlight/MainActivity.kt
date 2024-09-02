@@ -3,14 +3,13 @@ package com.project.tothestarlight
 import android.annotation.SuppressLint
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
-import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
-import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
@@ -54,6 +53,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var sunRiseTv: TextView
     private lateinit var moonRiseTv: TextView
     private lateinit var sunSetTv: TextView
+    private lateinit var moonSetTv: TextView
     private lateinit var monthlyEventTv: TextView
     private lateinit var mainAstroTitleTv: TextView
     private lateinit var monthlyEventInfoTv: TextView
@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var astroAdapter: AstroRecyclerAdapter
     private var datas = mutableListOf<AstroItem>()
     private var astroItems = mutableListOf<AstroItem>()
+    private var riseItems = mutableListOf<RiseItem>()
 
     private var lunAge: String? = null
     private var solDay: String? = null
@@ -79,8 +80,17 @@ class MainActivity : AppCompatActivity() {
     private var astroTime: String? = null
     private var astroDate: String? = null
 
+    private var sunRise: String? = null
+    private var sunSet: String? = null
+    private var moonRise: String? = null
+    private var moonSet: String? = null
+
     private lateinit var urlBuilder1: StringBuilder
     private lateinit var urlBuilder2: StringBuilder
+    private lateinit var urlBuilder3: StringBuilder
+
+    private lateinit var preference: SharedPreferences
+    private var selectedLocation = ""
 
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -109,27 +119,45 @@ class MainActivity : AppCompatActivity() {
         sunRiseTv = findViewById(R.id.sunRiseTv)
         moonRiseTv = findViewById(R.id.moonRiseTv)
         sunSetTv = findViewById(R.id.sunSetTv)
+        moonSetTv = findViewById(R.id.moonSetTv)
         monthlyEventInfoTv = findViewById(R.id.monthlyEventInfoTv)
         mainAstroTitleTv = findViewById(R.id.mainAstroTitleTv)
         monthlyEventTv = findViewById(R.id.monthlyEventTv)
         copyIv = findViewById(R.id.copyIv)
         astroRv = findViewById(R.id.astroRv)
 
+        preference = getSharedPreferences("location", 0)
+
+        if(locationTv.text == "위치") {
+            selectedLocation = preference.getString("location", "").toString()
+            locationTv.text = selectedLocation
+        }
+
         val dateSplit = getCurrentDate().split("-")
+        val currentDate = dateSplit[0]+dateSplit[1]+dateSplit[2]
 
         urlBuilder1 = StringBuilder(BuildConfig.API_ASTRO)
         urlBuilder2 = StringBuilder(BuildConfig.API_MOON)
+        urlBuilder3 = StringBuilder(BuildConfig.API_RISE)
         makeUrlBuilder1(dateSplit[0], dateSplit[1])
         makeUrlBuilder2(dateSplit[0], dateSplit[1])
+        makeUrlBuilder3(currentDate, selectedLocation)
         xmlParsing1()
         xmlParsing2()
+        xmlParsing3()
 
         mainDateTv.text = dateSplit[0] + "년" + dateSplit[1] + "월"
+
+        monthlyEventTv.text = dateSplit[1]
 
         settingIv.setOnClickListener {
             val dlg = CustomLocationDialogAdapter(this@MainActivity)
             dlg.setOnAcceptClickedListener { location ->
-                Log.e("12", location)
+                locationTv.text = location
+                val editor = preference.edit()
+                editor.putString("location", location)
+                editor.apply()
+                Toast.makeText(this, "다음 정보부터 적용된 지역으로 표시됩니다.", Toast.LENGTH_SHORT).show()
             }
             dlg.show()
         }
@@ -145,15 +173,21 @@ class MainActivity : AppCompatActivity() {
             override fun onClick(calendarDay: CalendarDay) {
                 val clickedDay = calendarDay.calendar
                 val year = clickedDay.get(Calendar.YEAR)
-                val month = clickedDay.get(Calendar.MONTH) + 1
-                val day = if (clickedDay.get(Calendar.DAY_OF_MONTH) < 10) {
-                    "0" + clickedDay.get(Calendar.DAY_OF_MONTH)
-                } else {
-                    clickedDay.get(Calendar.DAY_OF_MONTH).toString()
-                }
-                val convert = convertSolarToLunar(year, month, day.toInt())
+                val month = String.format(Locale.KOREA, "%02d", clickedDay.get(Calendar.MONTH) + 1)
+                val day = clickedDay.get(Calendar.DAY_OF_MONTH).toString().padStart(2, '0')
+                val convert = convertSolarToLunar(year, month.toInt(), day.toInt())
 
                 lunarTv.text = convert
+
+                val combineDate = year.toString()+month+ day
+                Log.e("@@@@", combineDate)
+                urlBuilder3.apply {
+                    clear()
+                    append(BuildConfig.API_RISE)
+                }
+                riseItems.clear()
+                makeUrlBuilder3(combineDate, selectedLocation)
+                xmlParsing3()
 
                 for (i in 0 until lunItems.size) {
                     if (lunItems[i].solDay == day) {
@@ -171,14 +205,25 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        //다음 달 클릭
         custom.setOnForwardPageChangeListener(object : OnCalendarPageChangeListener {
+            @SuppressLint("NotifyDataSetChanged")
             override fun onChange() {
                 val calendarToday = custom.currentPageDate
                 val year = calendarToday.get(GregorianCalendar.YEAR).toString()
                 val month = calendarToday.get(GregorianCalendar.MONTH) + 1
                 val convertMonth = month.toString().padStart(2, '0')
-                val day = calendarToday.get(GregorianCalendar.DAY_OF_MONTH)
-                Log.e("Test", "년: $year, 월: $convertMonth, 일: $day")
+                monthlyEventTv.text = convertMonth
+                //Log.e("Test", "년: $year, 월: $convertMonth, 일: $day")
+                urlBuilder1.apply {
+                    clear()
+                    append(BuildConfig.API_ASTRO)
+                }
+                astroItems.clear()
+                datas.clear()
+                astroAdapter.notifyDataSetChanged()
+                makeUrlBuilder1(year, convertMonth)
+                xmlParsing2()
                 urlBuilder2.apply {
                     clear()
                     append(BuildConfig.API_MOON)
@@ -189,14 +234,25 @@ class MainActivity : AppCompatActivity() {
             }
         })
 
+        //저번 달 클릭
         custom.setOnPreviousPageChangeListener(object : OnCalendarPageChangeListener {
+            @SuppressLint("NotifyDataSetChanged")
             override fun onChange() {
                 val calendarToday = custom.currentPageDate
                 val year = calendarToday.get(GregorianCalendar.YEAR).toString()
                 val month = calendarToday.get(GregorianCalendar.MONTH) + 1
                 val convertMonth = month.toString().padStart(2, '0')
-                val day = calendarToday.get(GregorianCalendar.DAY_OF_MONTH)
-                Log.e("Test", "년: $year, 월: $convertMonth, 일: $day")
+                monthlyEventTv.text = convertMonth
+                //Log.e("Test", "년: $year, 월: $convertMonth, 일: $day")
+                urlBuilder1.apply {
+                    clear()
+                    append(BuildConfig.API_ASTRO)
+                }
+                astroItems.clear()
+                datas.clear()
+                astroAdapter.notifyDataSetChanged()
+                makeUrlBuilder1(year, convertMonth)
+                xmlParsing2()
                 urlBuilder2.apply {
                     clear()
                     append(BuildConfig.API_MOON)
@@ -243,7 +299,7 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("NotifyDataSetChanged")
     private fun initRecycler(astroEvent: String, astroTitle: String, astroTime: String, astroDate: String) {
-        Log.e("INIT", astroEvent + "/" + astroTitle + "/" + astroTime + "/" + astroDate)
+        //Log.e("INIT", astroEvent + "/" + astroTitle + "/" + astroTime + "/" + astroDate)
         astroAdapter = AstroRecyclerAdapter(this)
         astroRv.adapter = astroAdapter
         datas.apply { add(AstroItem(astroEvent,astroTime,astroTitle,astroDate)) }
@@ -254,7 +310,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun makeUrlBuilder1(year: String?, month: String?) {
-        Log.d("parsingLog", "makeUrlBuilder1 실행됨")
+        //Log.d("parsingLog", "makeUrlBuilder1 실행됨")
         try {
             urlBuilder1.append("?" + URLEncoder.encode("ServiceKey", "UTF-8") + "=" + BuildConfig.API_KEY)
             urlBuilder1.append("&" + URLEncoder.encode("solYear", "UTF-8") + "=" + URLEncoder.encode(year, "UTF-8")) // 연도
@@ -268,13 +324,26 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun makeUrlBuilder2(year: String?, month: String?) {
-        Log.d("parsingLog", "makeUrlBuilder2 실행됨")
+        //Log.d("parsingLog", "makeUrlBuilder2 실행됨")
         try {
             urlBuilder2.append("?" + URLEncoder.encode("ServiceKey", "UTF-8") + "=" + BuildConfig.API_KEY)
             urlBuilder2.append("&" + URLEncoder.encode("solYear", "UTF-8") + "=" + URLEncoder.encode(year, "UTF-8")) // 연도
             urlBuilder2.append("&" + URLEncoder.encode("solMonth", "UTF-8") + "=" + URLEncoder.encode(month, "UTF-8")) // 월
             urlBuilder2.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("32", "UTF-8")) //모든 데이터 출력
             Log.d("parsingLog", "url2: $urlBuilder2")
+
+        } catch (e: IOException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun makeUrlBuilder3(date: String, location: String) {
+        //Log.d("parsingLog", "makeUrlBuilder3 실행됨")
+        try {
+            urlBuilder3.append("?" + URLEncoder.encode("ServiceKey", "UTF-8") + "=" + BuildConfig.API_KEY)
+            urlBuilder3.append("&" + URLEncoder.encode("locdate", "UTF-8") + "=" + URLEncoder.encode(date, "UTF-8")) // 연도
+            urlBuilder3.append("&" + URLEncoder.encode("location", "UTF-8") + "=" + URLEncoder.encode(location, "UTF-8")) // 월
+            Log.d("parsingLog", "url3: $urlBuilder3")
 
         } catch (e: IOException) {
             e.printStackTrace()
@@ -297,6 +366,17 @@ class MainActivity : AppCompatActivity() {
             val url = URL(urlBuilder1.toString())
 
             val task = XMLTask2()
+            task.execute(url)
+        } catch (e: MalformedURLException) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun xmlParsing3() {
+        try {
+            val url = URL(urlBuilder3.toString())
+
+            val task = XMLTask3()
             task.execute(url)
         } catch (e: MalformedURLException) {
             e.printStackTrace()
@@ -361,15 +441,7 @@ class MainActivity : AppCompatActivity() {
                             tagName = parser.name
                             if (tagName == "item") {
                                 //Log.d("RESULT", solYear+"/"+solMonth+"/"+solDay+"/"+solWeek+"/"+lunAge)
-                                lunItems.add(
-                                    LunItem(
-                                        lunAge.toString(),
-                                        solDay.toString(),
-                                        solMonth.toString(),
-                                        solWeek.toString(),
-                                        solYear.toString()
-                                    )
-                                )
+                                lunItems.add(LunItem(lunAge.toString(), solDay.toString(), solMonth.toString(), solWeek.toString(), solYear.toString()))
                             }
                         }
                     }
@@ -394,8 +466,7 @@ class MainActivity : AppCompatActivity() {
                 val itemYear = lunItems[index].solYear
                 val itemMonth = lunItems[index].solMonth
                 val itemDay = lunItems[index].solDay
-                val drawableId =
-                    resources.getIdentifier("moon_shape${itemAge}", "drawable", packageName)
+                val drawableId = resources.getIdentifier("moon_shape${itemAge}", "drawable", packageName)
                 val drawable: Drawable? = ContextCompat.getDrawable(this@MainActivity, drawableId)
                 calendar.set(itemYear.toInt(), itemMonth.toInt() - 1, itemDay.toInt())
                 events.add(EventDay(calendar.clone() as Calendar, drawable!!))
@@ -411,7 +482,6 @@ class MainActivity : AppCompatActivity() {
                 divideDate[1].toInt(),
                 divideDate[2].toInt()
             )
-            monthlyEventTv.text = divideDate[1]
             for (i in 0 until lunItems.size) {
                 if (lunItems[i].solMonth == divideDate[1] && lunItems[i].solDay == divideDate[2]) {
                     moonAgeTv.text = lunItems[i].lunAge
@@ -434,9 +504,7 @@ class MainActivity : AppCompatActivity() {
         @Deprecated("Deprecated in Java")
         override fun doInBackground(vararg urls: URL?) {
             val myUrl = urls[0]
-            val items = ArrayList<AstroItem>()
             try {
-                items.clear()
                 val `is` = myUrl?.openStream()
                 val factory = XmlPullParserFactory.newInstance()
                 val parser = factory.newPullParser()
@@ -445,7 +513,6 @@ class MainActivity : AppCompatActivity() {
                 var eventType = parser.eventType
                 var tagName: String?
 
-                var cnt = 0
                 while (eventType != XmlPullParser.END_DOCUMENT) {
                     when (eventType) {
                         XmlPullParser.START_TAG -> {
@@ -488,14 +555,7 @@ class MainActivity : AppCompatActivity() {
                         XmlPullParser.END_TAG -> {
                             tagName = parser.name
                             if (tagName == "item") {
-                                if(cnt != 0) {
-                                    Log.d("RESULT", astroEvent + "/" + astroTitle + "/" + astroTime + "/" + astroDate)
-                                    initRecycler(astroEvent.toString(), astroTitle.toString(), astroTime.toString(), astroDate.toString())
-                                }
-                                else {
-                                    astroItems.add(AstroItem(astroEvent.toString(), astroTime.toString(), astroTitle.toString(), astroDate.toString()))
-                                    cnt++
-                                }
+                                astroItems.add(AstroItem(astroEvent.toString(), astroTime.toString(), astroTitle.toString(), astroDate.toString()))
                             }
                         }
                     }
@@ -512,11 +572,89 @@ class MainActivity : AppCompatActivity() {
         override fun onPostExecute(result: Unit?) {
             super.onPostExecute(result)
 
+            for(i in 0 until astroItems.size) {
+                if(i != 0) {
+                    initRecycler(astroItems[i].astroEvent.toString(), astroItems[i].astroTitle.toString(), astroItems[i].astroTime.toString(), astroItems[i].astroDate.toString())
+                }
+            }
             mainAstroTitleTv.text = astroItems[0].astroTitle
             monthlyEventInfoTv.text = astroItems[0].astroEvent
         }
     }
+
+    @SuppressLint("StaticFieldLeak")
+    inner class XMLTask3 : AsyncTask<URL?, Void?, Unit?>() {
+
+        @Deprecated("Deprecated in Java")
+        override fun doInBackground(vararg urls: URL?) {
+            val myUrl = urls[0]
+            try {
+                val `is` = myUrl?.openStream()
+                val factory = XmlPullParserFactory.newInstance()
+                val parser = factory.newPullParser()
+
+                parser.setInput(`is`, "UTF8")
+                var eventType = parser.eventType
+                var tagName: String?
+
+                while (eventType != XmlPullParser.END_DOCUMENT) {
+                    when (eventType) {
+                        XmlPullParser.START_TAG -> {
+                            tagName = parser.name
+                            when (tagName) {
+                                "moonrise" -> {
+                                    parser.next()
+                                    val text = parser.text ?: ""
+                                    moonRise = text
+                                    //Log.e("moonRise", text)
+                                }
+
+                                "moonset" -> {
+                                    parser.next()
+                                    val text = parser.text ?: ""
+                                    moonSet = text
+                                    //Log.e("moonSet", text)
+                                }
+                                "sunrise" -> {
+                                    parser.next()
+                                    val text = parser.text ?: ""
+                                    sunRise = text
+                                    //Log.e("sunRise", text)
+                                }
+
+                                "sunset" -> {
+                                    parser.next()
+                                    val text = parser.text ?: ""
+                                    sunSet = text
+                                    //Log.e("sunSet", text)
+                                }
+                            }
+                        }
+
+                        XmlPullParser.END_TAG -> {
+                            tagName = parser.name
+                            if (tagName == "item") {
+                                riseItems.add(RiseItem(sunRise, sunSet, moonRise, moonSet))
+                            }
+                        }
+                    }
+                    eventType = parser.next()
+                }
+            } catch (e: XmlPullParserException) {
+                e.printStackTrace()
+            } catch (e: IOException) {
+                e.printStackTrace()
+            }
+        }
+
+        @Deprecated("Deprecated in Java")
+        override fun onPostExecute(result: Unit?) {
+            super.onPostExecute(result)
+
+            sunRiseTv.text = riseItems[0].sunRise!!.trim().chunked(2).joinToString(":")
+            moonRiseTv.text = riseItems[0].moonRise!!.trim().chunked(2).joinToString(":")
+            sunSetTv.text = riseItems[0].sunSet!!.trim().chunked(2).joinToString(":")
+            moonSetTv.text = riseItems[0].moonSet!!.trim().chunked(2).joinToString(":")
+        }
+    }
 }
-    // TODO: 출몰 시각 정보 추가시, 지역 설정 및 지역 저장(ShardPreference) 사용, 초기 화면은 오늘 날짜의 일출몰 시각
-    // TODO: 날짜 클릭시, 클릭한 날짜 일출몰 시각, 위치TextView 저장된 지역에 맞게 변환. 설정 버튼 -> 지역 변환 -> 데이터 저장
-    // TODO: 천문 현상 정보 추가

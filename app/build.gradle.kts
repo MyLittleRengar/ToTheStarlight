@@ -1,7 +1,13 @@
+import java.io.FileInputStream
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
 }
+
+val properties = Properties()
+properties.load(FileInputStream(rootProject.file("local.properties")))
 
 android {
     namespace = "com.project.tothestarlight"
@@ -17,8 +23,9 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         buildConfigField("String", "API_KEY", "${properties["api.key"]}")
-        buildConfigField("String", "API_MOON", "${properties["api.moon"]}")
-        buildConfigField("String", "API_ASTRO", "${properties["api.astro"]}")
+        buildConfigField("String", "API_MOON", "${properties["url.moon"]}")
+        buildConfigField("String", "API_ASTRO", "${properties["url.astro"]}")
+        buildConfigField("String", "API_RISE", "${properties["url.rise"]}")
     }
 
     buildTypes {
@@ -60,5 +67,4 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.lottie)
     implementation(libs.koreanlunarcalendar)
-    implementation(kotlin("script-runtime"))
 }
