@@ -1,12 +1,18 @@
 package com.project.tothestarlight
 
 import android.annotation.SuppressLint
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.app.SearchManager
 import android.content.ClipData
 import android.content.ClipboardManager
+import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.os.Bundle
+import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
@@ -24,6 +30,11 @@ import com.applandeo.materialcalendarview.CalendarView
 import com.applandeo.materialcalendarview.EventDay
 import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
+import com.project.tothestarlight.databinding.ActivityMainBinding
+import com.project.tothestarlight.recycler.AstroItem
+import com.project.tothestarlight.recycler.AstroRecyclerAdapter
+import com.project.tothestarlight.recycler.LunItem
+import com.project.tothestarlight.recycler.RiseItem
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -40,6 +51,12 @@ import java.util.Locale
 import kotlin.math.floor
 
 class MainActivity : AppCompatActivity() {
+
+    val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
+
+    companion object {
+        const val REQUEST_CODE = 101
+    }
 
     private lateinit var custom: CalendarView
     private lateinit var settingIv: ImageView
@@ -151,15 +168,8 @@ class MainActivity : AppCompatActivity() {
         monthlyEventTv.text = dateSplit[1]
 
         settingIv.setOnClickListener {
-            val dlg = CustomLocationDialogAdapter(this@MainActivity)
-            dlg.setOnAcceptClickedListener { location ->
-                locationTv.text = location
-                val editor = preference.edit()
-                editor.putString("location", location)
-                editor.apply()
-                Toast.makeText(this, "다음 정보부터 적용된 지역으로 표시됩니다.", Toast.LENGTH_SHORT).show()
-            }
-            dlg.show()
+            startActivity(Intent(this@MainActivity, SettingActivity::class.java))
+            finish()
         }
 
         copyIv.setOnClickListener {
@@ -280,6 +290,21 @@ class MainActivity : AppCompatActivity() {
                 custom.visibility = View.VISIBLE
             }
         }
+
+        mainDateTv.setOnClickListener {
+            val title = "달 정보"
+            val content = "오늘은 아름다운 날입니다."
+            val intent = Intent(binding.root.context, MyAlarmReceiver::class.java).apply {
+                putExtra("code", REQUEST_CODE)
+                putExtra("title", title)
+                putExtra("content", content)
+            }
+            val alarmManager = binding.root.context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+            val pendingIntent = PendingIntent.getBroadcast(binding.root.context, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+            alarmManager.set(
+                AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000, pendingIntent
+            )
+        }
     }
 
     @SuppressLint("SimpleDateFormat")
@@ -307,6 +332,36 @@ class MainActivity : AppCompatActivity() {
         astroRv.setHasFixedSize(true)
         astroAdapter.datas = datas
         astroAdapter.notifyDataSetChanged()
+
+        astroAdapter.setOnAstroClickListener(object: AstroRecyclerAdapter.onAstroClickListener {
+            override fun onItemClick(v: View?) {
+                val astroClickTitle = v!!.findViewById<TextView>(R.id.astroTitleTv)
+                val astroClickEvent = v.findViewById<TextView>(R.id.astroEventTv)
+                val query = astroClickTitle.text.takeIf { it.isNotBlank() }?.toString() ?: astroClickEvent.text.takeIf { it.isNotBlank() }?.toString()
+                val internetIntent = Intent(Intent.ACTION_WEB_SEARCH)
+                internetIntent.putExtra(SearchManager.QUERY, query)
+                startActivity(internetIntent)
+            }
+
+            override fun onLongClick(v: View?) {
+                val astroClickTitle = v!!.findViewById<TextView>(R.id.astroTitleTv)
+                val astroClickEvent = v.findViewById<TextView>(R.id.astroEventTv)
+                val title = "ToTheStarlight"
+                val textData1 = astroClickTitle.text.takeIf { it.isNotBlank() }?.toString() ?: astroClickEvent.text.takeIf { it.isNotBlank() }?.toString()
+
+                val intent = Intent(binding.root.context, MyAlarmReceiver::class.java).apply {
+                    putExtra("code", REQUEST_CODE)
+                    putExtra("title", title)
+                    putExtra("content", textData1)
+                }
+                val alarmManager = binding.root.context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val pendingIntent = PendingIntent.getBroadcast(binding.root.context, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+                alarmManager.set(
+                    AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000, pendingIntent
+                )
+            }
+
+        })
     }
 
     private fun makeUrlBuilder1(year: String?, month: String?) {
@@ -655,6 +710,17 @@ class MainActivity : AppCompatActivity() {
             moonRiseTv.text = riseItems[0].moonRise!!.trim().chunked(2).joinToString(":")
             sunSetTv.text = riseItems[0].sunSet!!.trim().chunked(2).joinToString(":")
             moonSetTv.text = riseItems[0].moonSet!!.trim().chunked(2).joinToString(":")
+        }
+    }
+
+    private var backPressedTime: Long = 0
+    override fun onBackPressed() {
+        if(System.currentTimeMillis() > backPressedTime + 2000) {
+            backPressedTime = System.currentTimeMillis()
+            Toast.makeText(this, "\'뒤로\' 버튼을 한번 더 누르시면 종료됩니다.", Toast.LENGTH_SHORT).show()
+        }
+        else if(System.currentTimeMillis() <= backPressedTime + 2000) {
+            super.onBackPressed()
         }
     }
 }

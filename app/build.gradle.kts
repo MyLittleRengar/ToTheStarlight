@@ -67,4 +67,5 @@ dependencies {
     implementation(libs.androidx.cardview)
     implementation(libs.lottie)
     implementation(libs.koreanlunarcalendar)
+    implementation(libs.day.night.switch)
 }

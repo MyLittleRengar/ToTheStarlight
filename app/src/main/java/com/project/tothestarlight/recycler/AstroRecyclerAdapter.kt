@@ -1,17 +1,27 @@
-package com.project.tothestarlight
+package com.project.tothestarlight.recycler
 
 import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
+import com.project.tothestarlight.R
 
-class AstroRecyclerAdapter(val context: Context): RecyclerView.Adapter<AstroRecyclerAdapter.ViewHolder>() {
+class AstroRecyclerAdapter(private val context: Context): RecyclerView.Adapter<AstroRecyclerAdapter.ViewHolder>() {
+    private var astroClickListener: onAstroClickListener? = null
     var datas = mutableListOf<AstroItem>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): AstroRecyclerAdapter.ViewHolder {
+    interface onAstroClickListener {
+        fun onItemClick(v: View?)
+        fun onLongClick(v: View?)
+    }
+
+    fun setOnAstroClickListener(listener: onAstroClickListener) {
+        this.astroClickListener = listener
+    }
+
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         val view = LayoutInflater.from(context).inflate(R.layout.astro_item, parent, false)
         return ViewHolder(view)
     }
@@ -21,7 +31,6 @@ class AstroRecyclerAdapter(val context: Context): RecyclerView.Adapter<AstroRecy
     override fun getItemCount(): Int = datas.size
 
     inner class ViewHolder(view: View): RecyclerView.ViewHolder(view) {
-        private var astroLl: LinearLayout = itemView.findViewById(R.id.astroLl)
         private var astroTitleTv: TextView = itemView.findViewById(R.id.astroTitleTv)
         private var astroEventTv: TextView = itemView.findViewById(R.id.astroEventTv)
         private var astroTimeTv: TextView = itemView.findViewById(R.id.astroTimeTv)
@@ -42,7 +51,16 @@ class AstroRecyclerAdapter(val context: Context): RecyclerView.Adapter<AstroRecy
             if(item.astroTime == ""){
                 astroTimeTv.visibility = View.GONE
             }
-            //길게 클릭시 알림 등록
+
+            itemView.setOnClickListener { view ->
+                astroClickListener?.onItemClick(view)
+            }
+
+            itemView.setOnLongClickListener { view ->
+                astroClickListener?.onLongClick(view)
+
+                true
+            }
         }
     }
 }
