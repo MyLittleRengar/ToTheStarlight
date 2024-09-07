@@ -39,8 +39,12 @@ class SettingActivity : AppCompatActivity() {
         preference = getSharedPreferences("location", 0)
 
         val selectedLocation = preference.getString("location", "").toString()
-        settingLocationTv.text = selectedLocation
-
+        if(selectedLocation.isBlank()) {
+            settingLocationTv.text = "서울"
+        }
+        else {
+            settingLocationTv.text = selectedLocation
+        }
         settingLocationTv.setOnClickListener {
             val dlg = CustomLocationDialogAdapter(this@SettingActivity)
             dlg.setOnAcceptClickedListener { location ->
@@ -76,6 +80,7 @@ class SettingActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         super.onBackPressed()
         startActivity(Intent(this@SettingActivity, MainActivity::class.java))

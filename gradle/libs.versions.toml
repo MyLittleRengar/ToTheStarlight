@@ -1,6 +1,7 @@
 [versions]
 agp = "8.5.2"
 cardview = "1.0.0"
+dayNightSwitch = "1.0.3"
 koreanlunarcalendar = "0.3.1"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
@@ -17,6 +18,7 @@ materialCalendarView = "1.9.2"
 [libraries]
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
+day-night-switch = { module = "com.github.vimalcvs:Day-Night-Switch", version.ref = "dayNightSwitch" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

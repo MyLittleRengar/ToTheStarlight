@@ -32,7 +32,6 @@ import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
 import com.project.tothestarlight.databinding.ActivityMainBinding
 import com.project.tothestarlight.recycler.AstroItem
-import com.project.tothestarlight.recycler.AstroRecyclerAdapter
 import com.project.tothestarlight.recycler.LunItem
 import com.project.tothestarlight.recycler.RiseItem
 import org.xmlpull.v1.XmlPullParser
@@ -78,6 +77,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var astroRv: RecyclerView
     private var openType: Boolean = true
 
+    private val loadingDialog = CircleProgressDialog()
+
     val events = mutableListOf<EventDay>()
     private var lunItems = mutableListOf<LunItem>()
 
@@ -109,9 +110,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var preference: SharedPreferences
     private var selectedLocation = ""
 
+    private var isMoonImageLoaded = false
+    private var isDataLoaded = false
+    private var isRecyclerViewUpdated = false
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        loadingDialog.show(supportFragmentManager, loadingDialog.tag)
+
         enableEdgeToEdge()
         val locale = Locale("ko", "KR")
         Locale.setDefault(locale)
@@ -147,7 +154,13 @@ class MainActivity : AppCompatActivity() {
 
         if(locationTv.text == "위치") {
             selectedLocation = preference.getString("location", "").toString()
-            locationTv.text = selectedLocation
+            if(selectedLocation.isBlank()) {
+                selectedLocation = "서울"
+                locationTv.text = selectedLocation
+            }
+            else {
+                locationTv.text = selectedLocation
+            }
         }
 
         val dateSplit = getCurrentDate().split("-")
@@ -219,6 +232,8 @@ class MainActivity : AppCompatActivity() {
         custom.setOnForwardPageChangeListener(object : OnCalendarPageChangeListener {
             @SuppressLint("NotifyDataSetChanged")
             override fun onChange() {
+                loadingDialog.show(supportFragmentManager, loadingDialog.tag)
+
                 val calendarToday = custom.currentPageDate
                 val year = calendarToday.get(GregorianCalendar.YEAR).toString()
                 val month = calendarToday.get(GregorianCalendar.MONTH) + 1
@@ -248,6 +263,8 @@ class MainActivity : AppCompatActivity() {
         custom.setOnPreviousPageChangeListener(object : OnCalendarPageChangeListener {
             @SuppressLint("NotifyDataSetChanged")
             override fun onChange() {
+                loadingDialog.show(supportFragmentManager, loadingDialog.tag)
+
                 val calendarToday = custom.currentPageDate
                 val year = calendarToday.get(GregorianCalendar.YEAR).toString()
                 val month = calendarToday.get(GregorianCalendar.MONTH) + 1
@@ -333,7 +350,7 @@ class MainActivity : AppCompatActivity() {
         astroAdapter.datas = datas
         astroAdapter.notifyDataSetChanged()
 
-        astroAdapter.setOnAstroClickListener(object: AstroRecyclerAdapter.onAstroClickListener {
+        astroAdapter.setOnAstroClickListener(object: AstroRecyclerAdapter.OnAstroClickListener {
             override fun onItemClick(v: View?) {
                 val astroClickTitle = v!!.findViewById<TextView>(R.id.astroTitleTv)
                 val astroClickEvent = v.findViewById<TextView>(R.id.astroEventTv)
@@ -550,6 +567,9 @@ class MainActivity : AppCompatActivity() {
                     moonShapeIv.setImageDrawable(drawable)
                 }
             }
+
+            isMoonImageLoaded = true
+            checkIfAllTasksCompleted()
         }
     }
 
@@ -634,6 +654,9 @@ class MainActivity : AppCompatActivity() {
             }
             mainAstroTitleTv.text = astroItems[0].astroTitle
             monthlyEventInfoTv.text = astroItems[0].astroEvent
+
+            isRecyclerViewUpdated = true
+            checkIfAllTasksCompleted()
         }
     }
 
@@ -710,10 +733,14 @@ class MainActivity : AppCompatActivity() {
             moonRiseTv.text = riseItems[0].moonRise!!.trim().chunked(2).joinToString(":")
             sunSetTv.text = riseItems[0].sunSet!!.trim().chunked(2).joinToString(":")
             moonSetTv.text = riseItems[0].moonSet!!.trim().chunked(2).joinToString(":")
+
+            isDataLoaded = true
+            checkIfAllTasksCompleted()
         }
     }
 
     private var backPressedTime: Long = 0
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         if(System.currentTimeMillis() > backPressedTime + 2000) {
             backPressedTime = System.currentTimeMillis()
@@ -721,6 +748,12 @@ class MainActivity : AppCompatActivity() {
         }
         else if(System.currentTimeMillis() <= backPressedTime + 2000) {
             super.onBackPressed()
+        }
+    }
+
+    private fun checkIfAllTasksCompleted() {
+        if (isMoonImageLoaded && isDataLoaded && isRecyclerViewUpdated) {
+            loadingDialog.dismiss()
         }
     }
 }
