@@ -1,4 +1,4 @@
-package com.project.tothestarlight
+package com.project.tothestarlight.recycler
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
-import com.project.tothestarlight.recycler.AstroItem
+import com.project.tothestarlight.R
 import java.text.SimpleDateFormat
 import java.util.Date
 

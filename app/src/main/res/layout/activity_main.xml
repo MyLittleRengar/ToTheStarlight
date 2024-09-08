@@ -139,7 +139,7 @@
                             android:id="@+id/moonShapeIv"
                             android:layout_width="30dp"
                             android:layout_height="30dp"
-                            app:srcCompat="@drawable/halfmoon"
+                            app:srcCompat="@drawable/moon_shape15"
                             tools:ignore="ContentDescription"  />
 
                         <TextView

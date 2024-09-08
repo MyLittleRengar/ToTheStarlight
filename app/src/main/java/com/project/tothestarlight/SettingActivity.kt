@@ -3,24 +3,34 @@ package com.project.tothestarlight
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.view.View
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import android.widget.ImageView
+import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.project.tothestarlight.dialog.DialogDismissListener
+import com.project.tothestarlight.dialog.LocationDialogFragment
 import com.vimalcvs.switchdn.DayNightSwitch
 import com.vimalcvs.switchdn.DayNightSwitchAnimListener
 
 
 
-class SettingActivity : AppCompatActivity() {
+class SettingActivity : AppCompatActivity(), DialogDismissListener {
 
     private lateinit var settingBackIv: ImageView
     private lateinit var settingLocationTv: TextView
     private lateinit var nightSw: DayNightSwitch
+    private lateinit var startFirstDaySp: Spinner
     private lateinit var preference: SharedPreferences
+    private lateinit var firstDatPf: SharedPreferences
+
+    private var selectedDay = ""
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +45,7 @@ class SettingActivity : AppCompatActivity() {
         settingBackIv = findViewById(R.id.settingBackIv)
         settingLocationTv = findViewById(R.id.settingLocationTv)
         nightSw = findViewById(R.id.nightSw)
+        startFirstDaySp = findViewById(R.id.startFirstDaySp)
 
         preference = getSharedPreferences("location", 0)
 
@@ -46,15 +57,9 @@ class SettingActivity : AppCompatActivity() {
             settingLocationTv.text = selectedLocation
         }
         settingLocationTv.setOnClickListener {
-            val dlg = CustomLocationDialogAdapter(this@SettingActivity)
-            dlg.setOnAcceptClickedListener { location ->
-                settingLocationTv.text = location
-                val editor = preference.edit()
-                editor.putString("location", location)
-                editor.apply()
-                Toast.makeText(this, "다음 정보부터 적용된 지역으로 표시됩니다.", Toast.LENGTH_SHORT).show()
-            }
-            dlg.show()
+            val dialog = LocationDialogFragment()
+            dialog.listener = this
+            dialog.show(supportFragmentManager, "LocationDialogFragment")
         }
 
         nightSw.setListener { isNight ->
@@ -78,6 +83,47 @@ class SettingActivity : AppCompatActivity() {
             startActivity(Intent(this@SettingActivity, MainActivity::class.java))
             finish()
         }
+
+        val items = resources.getStringArray(R.array.firstDay)
+        val spinnerAdapter = ArrayAdapter(this, android.R.layout.simple_spinner_dropdown_item, items)
+        startFirstDaySp.adapter = spinnerAdapter
+        startFirstDaySp.onItemSelectedListener = object: AdapterView.OnItemSelectedListener  {
+            override fun onItemSelected(parent: AdapterView<*>, view: View, position: Int, id: Long) {
+                firstDatPf = getSharedPreferences("firstDay", 0)
+                when(position) {
+                    0 -> {
+                        selectedDay = "MONDAY"
+                    }
+                    1-> {
+                        selectedDay = "TUESDAY"
+                    }
+                    2-> {
+                        selectedDay = "WEDNESDAY"
+                    }
+                    3-> {
+                        selectedDay = "THURSDAY"
+                    }
+                    4-> {
+                        selectedDay = "FRIDAY"
+                    }
+                    5-> {
+                        selectedDay = "SATURDAY"
+                    }
+                    else -> {
+                        selectedDay = "SUNDAY"
+                    }
+                }
+                firstDayPreferences()
+            }
+
+            override fun onNothingSelected(p0: AdapterView<*>?) {}
+        }
+    }
+
+    private fun firstDayPreferences() {
+        val editor = firstDatPf.edit()
+        editor.putString("firstDay", selectedDay)
+        editor.apply()
     }
 
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
@@ -85,5 +131,10 @@ class SettingActivity : AppCompatActivity() {
         super.onBackPressed()
         startActivity(Intent(this@SettingActivity, MainActivity::class.java))
         finish()
+    }
+
+    override fun onDialogDismissed() {
+        val selectedLocation = preference.getString("location", "").toString()
+        settingLocationTv.text = selectedLocation
     }
 }

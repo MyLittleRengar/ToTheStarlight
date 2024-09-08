@@ -52,7 +52,7 @@
             android:text="설정" />
 
         <View
-            android:id="@+id/divider7"
+            android:id="@+id/divider5"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
@@ -91,7 +91,7 @@
         </LinearLayout>
 
         <View
-            android:id="@+id/divider5"
+            android:id="@+id/divider2"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
@@ -125,6 +125,41 @@
                 tools:ignore="TouchTargetSizeCheck" />
 
 
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider7"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="15dp">
+
+            <TextView
+                android:id="@+id/textView1"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/cafe24surround"
+                android:text="지역"
+                android:textColor="@color/black"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <Spinner
+                android:id="@+id/startFirstDaySp"
+                android:layout_width="120dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/background_spinner_option"
+                android:layout_gravity="end|center_vertical"/>
         </LinearLayout>
 
         <View

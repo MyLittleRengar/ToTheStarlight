@@ -27,11 +27,14 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.applandeo.materialcalendarview.CalendarDay
 import com.applandeo.materialcalendarview.CalendarView
+import com.applandeo.materialcalendarview.CalendarWeekDay
 import com.applandeo.materialcalendarview.EventDay
 import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
 import com.project.tothestarlight.databinding.ActivityMainBinding
+import com.project.tothestarlight.dialog.CircleProgressDialog
 import com.project.tothestarlight.recycler.AstroItem
+import com.project.tothestarlight.recycler.AstroRecyclerAdapter
 import com.project.tothestarlight.recycler.LunItem
 import com.project.tothestarlight.recycler.RiseItem
 import org.xmlpull.v1.XmlPullParser
@@ -321,6 +324,29 @@ class MainActivity : AppCompatActivity() {
             alarmManager.set(
                 AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000, pendingIntent
             )
+        }
+
+        val selectedDayPref = getSharedPreferences("firstDay", 0)
+        val selectedFirstDay = selectedDayPref.getString("firstDay", "").toString()
+        if(selectedFirstDay.isNotEmpty()) {
+            val firstDayOfWeek = getCalendarWeekDay(selectedFirstDay)
+            custom.setFirstDayOfWeek(firstDayOfWeek)
+        }
+        else {
+            custom.setFirstDayOfWeek(CalendarWeekDay.SUNDAY)
+        }
+    }
+
+    private fun getCalendarWeekDay(dayName: String): CalendarWeekDay {
+        return when (dayName) {
+            "MONDAY" -> CalendarWeekDay.MONDAY
+            "TUESDAY" -> CalendarWeekDay.TUESDAY
+            "WEDNESDAY" -> CalendarWeekDay.WEDNESDAY
+            "THURSDAY" -> CalendarWeekDay.THURSDAY
+            "FRIDAY" -> CalendarWeekDay.FRIDAY
+            "SATURDAY" -> CalendarWeekDay.SATURDAY
+            "SUNDAY" -> CalendarWeekDay.SUNDAY
+            else -> CalendarWeekDay.MONDAY // 기본값 설정
         }
     }
 

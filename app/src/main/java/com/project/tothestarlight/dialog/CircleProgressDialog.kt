@@ -1,4 +1,4 @@
-package com.project.tothestarlight
+package com.project.tothestarlight.dialog
 
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
