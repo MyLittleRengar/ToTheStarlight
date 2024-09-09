@@ -10,38 +10,46 @@
 
     <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:background="#08091B"
+        android:gravity="center">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:id="@+id/mainDateTv"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal"
-            android:paddingTop="20dp"
-            android:paddingBottom="20dp">
+            android:layout_gravity="center"
+            android:layout_marginTop="15dp"
+            android:layout_marginBottom="15dp"
+            android:fontFamily="@font/cafe24surroundair"
+            android:text="0000년 00월"
+            android:textColor="@color/white"
+            android:textSize="26sp"
+            android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/mainDateTv"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:fontFamily="@font/cafe24surroundair"
-                android:text="0000년 00월"
-                android:textColor="@color/black"
-                android:textSize="26sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
+        <com.jetradarmobile.snowfall.SnowfallView
+            android:layout_width="match_parent"
+            android:layout_height="120dp"
+            app:snowflakeAlphaMax="500"
+            app:snowflakeAlphaMin="15"
+            app:snowflakeAngleMax="3"
+            app:snowflakeImage="@drawable/snowflake"
+            app:snowflakeSizeMax="12dp"
+            app:snowflakeSizeMin="4dp"
+            app:snowflakeSpeedMax="4"
+            app:snowflakeSpeedMin="2"
+            app:snowflakesAlreadyFalling="false"
+            app:snowflakesFadingEnabled="true"
+            app:snowflakesNum="40" />
 
         <ImageView
             android:id="@+id/settingIv"
             android:layout_width="35dp"
             android:layout_height="35dp"
-            android:layout_gravity="end|top"
-            android:layout_margin="10dp"
+            android:layout_gravity="end|center_vertical"
+            android:layout_marginEnd="15dp"
             app:srcCompat="@drawable/baseline_settings_24"
             tools:ignore="ContentDescription" />
-
-
     </FrameLayout>
 
     <View

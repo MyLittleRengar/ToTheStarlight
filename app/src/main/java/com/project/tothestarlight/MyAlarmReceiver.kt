@@ -7,12 +7,13 @@ import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.graphics.Color
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 
 class MyAlarmReceiver: BroadcastReceiver() {
-    val CHANNEL_ID = "Test"
+    private val channelId = "Astro"
     @SuppressLint("MissingPermission")
     override fun onReceive(context: Context, intent: Intent) {
         val code = intent.extras?.get("code")
@@ -33,8 +34,8 @@ class MyAlarmReceiver: BroadcastReceiver() {
             }
             val pendingIntent = PendingIntent.getActivity(context, 101, mainIntent, PendingIntent.FLAG_IMMUTABLE)
 
-            val builder01 = NotificationCompat.Builder(context, CHANNEL_ID).apply {
-                setSmallIcon(R.drawable.moon_shape15)
+            val builder01 = NotificationCompat.Builder(context, channelId).apply {
+                setSmallIcon(R.mipmap.ic_launcher_moon_round)
                 setContentTitle(notificationTitle)
                 setContentText(notificationContent)
                 priority = NotificationCompat.PRIORITY_DEFAULT
@@ -52,8 +53,11 @@ class MyAlarmReceiver: BroadcastReceiver() {
     private fun createNotificationChannel(context: Context?) {
         val name = "Astro"
         val descriptionText = "Astro information"
-        val channel = NotificationChannel(CHANNEL_ID, name, NotificationManager.IMPORTANCE_DEFAULT).apply {
+        val channel = NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_HIGH).apply {
             description = descriptionText
+            enableVibration(true)
+            enableLights(true)
+            lightColor = Color.BLUE
         }
 
         val notificationManager = context?.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager

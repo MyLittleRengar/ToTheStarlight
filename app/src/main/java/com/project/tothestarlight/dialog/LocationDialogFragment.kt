@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.SearchView
-import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -39,7 +38,7 @@ class LocationDialogFragment : DialogFragment() {
             dismiss()
         }
 
-        val gridLayoutManager = GridLayoutManager(context, 9)
+        val gridLayoutManager = GridLayoutManager(context, 8)
 
         gridLayoutManager.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
             override fun getSpanSize(position: Int): Int {

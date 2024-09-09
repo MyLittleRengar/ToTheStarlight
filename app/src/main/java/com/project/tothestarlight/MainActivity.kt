@@ -1,24 +1,21 @@
 package com.project.tothestarlight
 
 import android.annotation.SuppressLint
-import android.app.AlarmManager
-import android.app.PendingIntent
 import android.app.SearchManager
 import android.content.ClipData
 import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.os.Bundle
-import android.os.SystemClock
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
@@ -31,7 +28,6 @@ import com.applandeo.materialcalendarview.CalendarWeekDay
 import com.applandeo.materialcalendarview.EventDay
 import com.applandeo.materialcalendarview.listeners.OnCalendarDayClickListener
 import com.applandeo.materialcalendarview.listeners.OnCalendarPageChangeListener
-import com.project.tothestarlight.databinding.ActivityMainBinding
 import com.project.tothestarlight.dialog.CircleProgressDialog
 import com.project.tothestarlight.recycler.AstroItem
 import com.project.tothestarlight.recycler.AstroRecyclerAdapter
@@ -53,8 +49,6 @@ import java.util.Locale
 import kotlin.math.floor
 
 class MainActivity : AppCompatActivity() {
-
-    val binding: ActivityMainBinding by lazy { ActivityMainBinding.inflate(layoutInflater) }
 
     companion object {
         const val REQUEST_CODE = 101
@@ -311,21 +305,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        mainDateTv.setOnClickListener {
-            val title = "달 정보"
-            val content = "오늘은 아름다운 날입니다."
-            val intent = Intent(binding.root.context, MyAlarmReceiver::class.java).apply {
-                putExtra("code", REQUEST_CODE)
-                putExtra("title", title)
-                putExtra("content", content)
-            }
-            val alarmManager = binding.root.context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-            val pendingIntent = PendingIntent.getBroadcast(binding.root.context, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            alarmManager.set(
-                AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000, pendingIntent
-            )
-        }
-
         val selectedDayPref = getSharedPreferences("firstDay", 0)
         val selectedFirstDay = selectedDayPref.getString("firstDay", "").toString()
         if(selectedFirstDay.isNotEmpty()) {
@@ -346,7 +325,7 @@ class MainActivity : AppCompatActivity() {
             "FRIDAY" -> CalendarWeekDay.FRIDAY
             "SATURDAY" -> CalendarWeekDay.SATURDAY
             "SUNDAY" -> CalendarWeekDay.SUNDAY
-            else -> CalendarWeekDay.MONDAY // 기본값 설정
+            else -> CalendarWeekDay.MONDAY
         }
     }
 
@@ -389,22 +368,49 @@ class MainActivity : AppCompatActivity() {
             override fun onLongClick(v: View?) {
                 val astroClickTitle = v!!.findViewById<TextView>(R.id.astroTitleTv)
                 val astroClickEvent = v.findViewById<TextView>(R.id.astroEventTv)
-                val title = "ToTheStarlight"
                 val textData1 = astroClickTitle.text.takeIf { it.isNotBlank() }?.toString() ?: astroClickEvent.text.takeIf { it.isNotBlank() }?.toString()
-
-                val intent = Intent(binding.root.context, MyAlarmReceiver::class.java).apply {
-                    putExtra("code", REQUEST_CODE)
-                    putExtra("title", title)
-                    putExtra("content", textData1)
-                }
-                val alarmManager = binding.root.context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-                val pendingIntent = PendingIntent.getBroadcast(binding.root.context, REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-                alarmManager.set(
-                    AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + 1000, pendingIntent
-                )
+                createAlertDialog(textData1!!, v)
             }
-
         })
+    }
+
+    private fun createAlertDialog(event: String, v: View?) {
+        val builder  = AlertDialog.Builder(this)
+        builder.setTitle("[ $event ] 에 대한 \n알림을 설정하시겠습니까?")
+            .setPositiveButton("확인") { _, _ ->
+                val astroDate = v!!.findViewById<TextView>(R.id.astroDateTv).text.toString()
+                val splitDate = astroDate.split("-")
+                val year = splitDate[0].replace("0", "").toInt()
+                val month = splitDate[1].replace("0", "")
+                val transMonth = getMonthFromString(month)
+                val day = splitDate[2].replace("0", "").toInt()
+
+                val title = "ToTheStarlight  🪐"
+                val content = "오늘 ${astroTime}에 이벤트가 있어요  🔭"
+
+                AlarmUtils.setAlarmAt(this, year, transMonth,day,0, 0, REQUEST_CODE, title, content)
+                Toast.makeText(this, "알림이 설정되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+            .setNegativeButton("취소") {_, _ -> }
+        builder.show()
+    }
+
+    private fun getMonthFromString(monthString: String): Int {
+        return when (monthString.toInt()) {
+            1 -> Calendar.JANUARY
+            2 -> Calendar.FEBRUARY
+            3 -> Calendar.MARCH
+            4 -> Calendar.APRIL
+            5 -> Calendar.MAY
+            6 -> Calendar.JUNE
+            7 -> Calendar.JULY
+            8 -> Calendar.AUGUST
+            9 -> Calendar.SEPTEMBER
+            10 -> Calendar.OCTOBER
+            11 -> Calendar.NOVEMBER
+            12 -> Calendar.DECEMBER
+            else -> throw IllegalArgumentException("Invalid month: $monthString")
+        }
     }
 
     private fun makeUrlBuilder1(year: String?, month: String?) {

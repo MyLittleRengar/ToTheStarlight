@@ -1,5 +1,6 @@
 [versions]
 agp = "8.5.2"
+androidSnowfall = "1.2.1"
 cardview = "1.0.0"
 dayNightSwitch = "1.0.3"
 koreanlunarcalendar = "0.3.1"
@@ -10,12 +11,13 @@ junitVersion = "1.2.1"
 espressoCore = "3.6.1"
 appcompat = "1.7.0"
 material = "1.12.0"
-activity = "1.9.1"
+activity = "1.9.2"
 constraintlayout = "2.1.4"
 lottie = "6.5.0"
 materialCalendarView = "1.9.2"
 
 [libraries]
+android-snowfall = { module = "com.github.jetradarmobile:android-snowfall", version.ref = "androidSnowfall" }
 androidx-cardview = { module = "androidx.cardview:cardview", version.ref = "cardview" }
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
 day-night-switch = { module = "com.github.vimalcvs:Day-Night-Switch", version.ref = "dayNightSwitch" }

@@ -68,4 +68,5 @@ dependencies {
     implementation(libs.lottie)
     implementation(libs.koreanlunarcalendar)
     implementation(libs.day.night.switch)
+    implementation(libs.android.snowfall)
 }
