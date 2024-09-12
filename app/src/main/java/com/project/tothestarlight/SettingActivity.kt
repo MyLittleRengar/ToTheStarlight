@@ -16,6 +16,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.project.tothestarlight.dialog.DialogDismissListener
 import com.project.tothestarlight.dialog.LocationDialogFragment
+import com.project.tothestarlight.dialog.WeatherLocationDialogFragment
 import com.vimalcvs.switchdn.DayNightSwitch
 import com.vimalcvs.switchdn.DayNightSwitchAnimListener
 
@@ -25,6 +26,7 @@ class SettingActivity : AppCompatActivity(), DialogDismissListener {
 
     private lateinit var settingBackIv: ImageView
     private lateinit var settingLocationTv: TextView
+    private lateinit var settingWeatherLocationTv: TextView
     private lateinit var nightSw: DayNightSwitch
     private lateinit var startFirstDaySp: Spinner
     private lateinit var preference: SharedPreferences
@@ -44,22 +46,38 @@ class SettingActivity : AppCompatActivity(), DialogDismissListener {
 
         settingBackIv = findViewById(R.id.settingBackIv)
         settingLocationTv = findViewById(R.id.settingLocationTv)
+        settingWeatherLocationTv = findViewById(R.id.settingWeatherLocationTv)
         nightSw = findViewById(R.id.nightSw)
         startFirstDaySp = findViewById(R.id.startFirstDaySp)
 
         preference = getSharedPreferences("location", 0)
 
         val selectedLocation = preference.getString("location", "").toString()
+        val selectedWeatherLocation = preference.getString("weatherLocation", "").toString()
         if(selectedLocation.isBlank()) {
             settingLocationTv.text = "서울"
         }
         else {
             settingLocationTv.text = selectedLocation
         }
+
+        if(selectedWeatherLocation.isBlank()) {
+            settingWeatherLocationTv.text = "서울"
+        }
+        else {
+            settingWeatherLocationTv.text = selectedWeatherLocation
+        }
+
         settingLocationTv.setOnClickListener {
             val dialog = LocationDialogFragment()
             dialog.listener = this
             dialog.show(supportFragmentManager, "LocationDialogFragment")
+        }
+
+        settingWeatherLocationTv.setOnClickListener {
+            val dialog = WeatherLocationDialogFragment()
+            dialog.listener = this
+            dialog.show(supportFragmentManager, "WeatherLocationDialogFragment")
         }
 
         nightSw.setListener { isNight ->
@@ -135,6 +153,8 @@ class SettingActivity : AppCompatActivity(), DialogDismissListener {
 
     override fun onDialogDismissed() {
         val selectedLocation = preference.getString("location", "").toString()
+        val selectedWeatherLocation = preference.getString("weatherLocation", "").toString()
         settingLocationTv.text = selectedLocation
+        settingWeatherLocationTv.text = selectedWeatherLocation
     }
 }

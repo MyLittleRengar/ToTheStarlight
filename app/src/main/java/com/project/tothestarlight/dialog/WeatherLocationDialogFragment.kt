@@ -1,0 +1,77 @@
+package com.project.tothestarlight.dialog
+
+import android.content.DialogInterface
+import android.content.SharedPreferences
+import android.os.Bundle
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import android.widget.SearchView
+import androidx.fragment.app.DialogFragment
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.project.tothestarlight.R
+
+
+class WeatherLocationDialogFragment : DialogFragment() {
+
+    private lateinit var adapter: LocationAdapter
+    private lateinit var searchView: SearchView
+    private lateinit var preference: SharedPreferences
+
+    var listener: DialogDismissListener? = null
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        val view = inflater.inflate(R.layout.fragment_location_dialog, container, false)
+
+        preference = requireContext().getSharedPreferences("location", 0)
+
+        val locations = resources.getStringArray(R.array.weatherLocation).toList()
+
+        val recyclerView = view.findViewById<RecyclerView>(R.id.recyclerView)
+        searchView = view.findViewById(R.id.searchView)
+
+        adapter = LocationAdapter(locations) { selectedLocation ->
+            val editor = preference.edit()
+            editor.putString("weatherLocation", selectedLocation)
+            editor.apply()
+            dismiss()
+        }
+
+        val gridLayoutManager = LinearLayoutManager(context)
+
+        recyclerView.layoutManager = gridLayoutManager
+        recyclerView.adapter = adapter
+
+        setupSearchView()
+
+        return view
+    }
+
+    private fun setupSearchView() {
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String?): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String?): Boolean {
+                adapter.filter.filter(newText)
+                return true
+            }
+        })
+    }
+
+    override fun onStart() {
+        super.onStart()
+
+        val dialog = dialog ?: return
+        dialog.window?.setLayout((resources.displayMetrics.widthPixels * 0.7).toInt(), (resources.displayMetrics.heightPixels * 0.45).toInt())
+    }
+
+    override fun onDismiss(dialog: DialogInterface) {
+        super.onDismiss(dialog)
+        listener?.onDialogDismissed()
+    }
+}
+
+

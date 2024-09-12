@@ -5,21 +5,18 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.provider.Settings
+import android.util.Log
 import java.util.Calendar
 
 object AlarmUtils {
-    fun setAlarmAt(context: Context, year: Int, month: Int, day: Int, hour: Int, minute: Int, code: Int, title: String, content: String) {
+    fun setAlarmAt(context: Context, year: Int, month: Int, day: Int, code: Int, title: String, content: String) {
         val calendar = Calendar.getInstance().apply {
-            set(Calendar.YEAR, year)
-            set(Calendar.MONTH, month)
-            set(Calendar.DAY_OF_MONTH, day)
-            set(Calendar.HOUR_OF_DAY, hour)
-            set(Calendar.MINUTE, minute)
-            set(Calendar.SECOND, 0)
+            set(year, month, day, 3, 50, 0)
             set(Calendar.MILLISECOND, 0)
         }
 
         val triggerTimeMillis = calendar.timeInMillis
+        Log.d("AlarmUtils", "Trigger Time in millis: $triggerTimeMillis")
 
         if (!hasExactAlarmPermission(context)) {
             // 권한 요청 화면으로 이동
@@ -48,3 +45,4 @@ object AlarmUtils {
         alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerTimeMillis, pendingIntent)
     }
 }
+

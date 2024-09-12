@@ -13,7 +13,8 @@
         android:layout_height="wrap_content"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:padding="15dp">
+        android:padding="15dp"
+        tools:ignore="UseCompoundDrawables">
 
         <ImageView
             android:id="@+id/settingBackIv"
@@ -87,11 +88,53 @@
                 android:text="서울"
                 android:textColor="@color/sub"
                 android:textSize="19sp"
-                android:textStyle="bold" />
+                android:textStyle="bold"
+                tools:ignore="TextContrastCheck" />
+
         </LinearLayout>
 
         <View
             android:id="@+id/divider2"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?android:attr/listDivider" />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:padding="15dp">
+
+            <TextView
+                android:id="@+id/textView9"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/cafe24surround"
+                android:text="날씨 지역"
+                android:textColor="@color/black"
+                android:textSize="19sp"
+                android:textStyle="bold" />
+
+            <View
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:layout_weight="1" />
+
+            <TextView
+                android:id="@+id/settingWeatherLocationTv"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
+                android:fontFamily="@font/cafe24surround"
+                android:text="서울"
+                android:textColor="@color/sub"
+                android:textSize="19sp"
+                android:textStyle="bold"
+                tools:ignore="TextContrastCheck" />
+        </LinearLayout>
+
+        <View
+            android:id="@+id/divider1"
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:background="?android:attr/listDivider" />
@@ -122,7 +165,7 @@
                 android:id="@+id/nightSw"
                 android:layout_width="80dp"
                 android:layout_height="40dp"
-                tools:ignore="TouchTargetSizeCheck" />
+                tools:ignore="TouchTargetSizeCheck,SpeakableTextPresentCheck" />
 
 
         </LinearLayout>
@@ -144,6 +187,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:fontFamily="@font/cafe24surround"
+                android:layout_gravity="center_vertical"
                 android:text="지역"
                 android:textColor="@color/black"
                 android:textSize="19sp"
@@ -158,8 +202,9 @@
                 android:id="@+id/startFirstDaySp"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
+                android:layout_gravity="end|center_vertical"
                 android:background="@drawable/background_spinner_option"
-                android:layout_gravity="end|center_vertical"/>
+                android:minHeight="48dp" />
         </LinearLayout>
 
         <View
@@ -197,7 +242,8 @@
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
             android:orientation="horizontal"
-            android:padding="15dp">
+            android:padding="15dp"
+            tools:ignore="UseCompoundDrawables">
 
             <ImageView
                 android:id="@+id/imageView2"
