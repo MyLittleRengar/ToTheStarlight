@@ -27,6 +27,8 @@ android {
         buildConfigField("String", "API_ASTRO", "${properties["url.astro"]}")
         buildConfigField("String", "API_RISE", "${properties["url.rise"]}")
         buildConfigField("String", "API_WEATHER", "${properties["url.weather"]}")
+        buildConfigField("String", "API_SHRTWEATHER", "${properties["url.shrtweather"]}")
+        buildConfigField("String", "API_VERYSHRTWEATHER", "${properties["url.veryshrtweather"]}")
     }
 
     buildTypes {
@@ -70,6 +72,6 @@ dependencies {
     implementation(libs.koreanlunarcalendar)
     implementation(libs.day.night.switch)
     implementation(libs.android.snowfall)
-    implementation("com.github.bumptech.glide:glide:4.12.0")
-    annotationProcessor("com.github.bumptech.glide:compiler:4.12.0")
+    implementation(libs.glide)
+    annotationProcessor(libs.compiler)
 }

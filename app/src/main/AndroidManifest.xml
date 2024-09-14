@@ -17,6 +17,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.ToTheStarlight">
         <activity
+            android:name=".WeatherActivity"
+            android:exported="false" />
+        <activity
             android:name=".SettingActivity"
             android:exported="false" />
         <activity

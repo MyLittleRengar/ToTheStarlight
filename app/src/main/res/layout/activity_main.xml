@@ -14,6 +14,15 @@
         android:background="#08091B"
         android:gravity="center">
 
+        <ImageView
+            android:id="@+id/weatherIv"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:layout_gravity="start|center_vertical"
+            android:layout_marginStart="15dp"
+            app:srcCompat="@drawable/baseline_wb_sunny_24"
+            tools:ignore="ContentDescription" />
+
         <TextView
             android:id="@+id/mainDateTv"
             android:layout_width="wrap_content"

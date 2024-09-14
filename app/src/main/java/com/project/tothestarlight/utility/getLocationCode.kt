@@ -1,4 +1,4 @@
-package com.project.tothestarlight
+package com.project.tothestarlight.utility
 
 fun getLocationCode(location: String): String? {
     val locations = mapOf(

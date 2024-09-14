@@ -35,6 +35,9 @@ import com.project.tothestarlight.recycler.AstroRecyclerAdapter
 import com.project.tothestarlight.recycler.LunItem
 import com.project.tothestarlight.recycler.RiseItem
 import com.project.tothestarlight.recycler.WeatherItem
+import com.project.tothestarlight.utility.AlarmUtils
+import com.project.tothestarlight.utility.convertSolarToLunar
+import com.project.tothestarlight.utility.getLocationCode
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -44,6 +47,9 @@ import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
@@ -57,6 +63,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var custom: CalendarView
+    private lateinit var weatherIv: ImageView
     private lateinit var settingIv: ImageView
     private lateinit var openIv: ImageView
     private lateinit var closeIv: ImageView
@@ -162,6 +169,7 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         custom = findViewById(R.id.custom)
+        weatherIv = findViewById(R.id.weatherIv)
         settingIv = findViewById(R.id.settingIv)
         openIv = findViewById(R.id.openIv)
         closeIv = findViewById(R.id.closeIv)
@@ -183,15 +191,25 @@ class MainActivity : AppCompatActivity() {
 
         preference = getSharedPreferences("location", 0)
 
-        //TODO 날씨 데이터 갱신 분류를 위한 코드 ing,,
-        //TODO val testing = LocalDateTime.now()
-        //TODO val testTimeFormat = testing.format(DateTimeFormatter.ofPattern("HH:mm"))
-        //TODO val testDateFormat = testing.format(DateTimeFormatter.ofPattern("yyyyMMdd"))
-        //TODO val testFormat = testing.format(DateTimeFormatter.ofPattern("yyyyMMddHHmm"))
-        //TODO Log.e("!!!!!", testFormat)
+        val dateTime = LocalDateTime.now()
+        val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm")
+        val sixAm = LocalTime.of(6, 0)
+        val sixPm = LocalTime.of(18, 0 )
+
+        val currentTime = dateTime.toLocalTime()
+
+        val resultDateTime: LocalDateTime =
+            if(currentTime.isBefore(sixAm)) {
+                LocalDateTime.of(dateTime.toLocalDate().minusDays(1), sixPm)
+            } else if(currentTime.isBefore(sixPm)) {
+                LocalDateTime.of(dateTime.toLocalDate(), sixAm)
+            } else {
+                LocalDateTime.of(dateTime.toLocalDate(), sixPm)
+            }
+        val formattedResult = resultDateTime.format(formatter)
 
         val maxCalendar = Calendar.getInstance()
-         maxCalendar.add(Calendar.MONTH, 3)
+        maxCalendar.add(Calendar.MONTH, 3)
         maxCalendar.set(Calendar.DAY_OF_MONTH, maxCalendar.getActualMaximum(Calendar.DAY_OF_MONTH))
         custom.setMaximumDate(maxCalendar)
 
@@ -218,7 +236,7 @@ class MainActivity : AppCompatActivity() {
         makeUrlBuilder1(dateSplit[0], dateSplit[1])
         makeUrlBuilder2(dateSplit[0], dateSplit[1])
         makeUrlBuilder3(currentDate, selectedLocation)
-        makeUrlBuilder4("202409120600", getLocationCode(selectedWeatherLocation)!!)
+        makeUrlBuilder4(formattedResult, getLocationCode(selectedWeatherLocation)!!)
         xmlParsing1()
         xmlParsing2()
         xmlParsing3()
@@ -227,6 +245,11 @@ class MainActivity : AppCompatActivity() {
         mainDateTv.text = dateSplit[0] + "년" + dateSplit[1] + "월"
 
         monthlyEventTv.text = dateSplit[1]
+
+        weatherIv.setOnClickListener {
+            startActivity(Intent(this@MainActivity, WeatherActivity::class.java))
+            finish()
+        }
 
         settingIv.setOnClickListener {
             startActivity(Intent(this@MainActivity, SettingActivity::class.java))
