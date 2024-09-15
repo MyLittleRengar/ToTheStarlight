@@ -6,13 +6,12 @@ import android.content.Context
 import android.content.Intent
 import android.provider.Settings
 import android.util.Log
-import com.project.tothestarlight.MyAlarmReceiver
 import java.util.Calendar
 
 object AlarmUtils {
     fun setAlarmAt(context: Context, year: Int, month: Int, day: Int, code: Int, title: String, content: String) {
         val calendar = Calendar.getInstance().apply {
-            set(year, month, day, 3, 50, 0)
+            set(year, month, day, 0, 5, 0)
             set(Calendar.MILLISECOND, 0)
         }
 

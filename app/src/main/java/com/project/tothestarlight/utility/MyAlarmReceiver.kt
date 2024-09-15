@@ -1,4 +1,4 @@
-package com.project.tothestarlight
+package com.project.tothestarlight.utility
 
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
@@ -11,6 +11,8 @@ import android.graphics.Color
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import com.project.tothestarlight.MainActivity
+import com.project.tothestarlight.R
 
 class MyAlarmReceiver: BroadcastReceiver() {
     private val channelId = "Astro"
