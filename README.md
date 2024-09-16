@@ -3,7 +3,7 @@
 천문과 달에 관심이 많았는데 우연히 공공데이터포털을 둘러보던 중 한국천문연구원에서 여러 API를 제공하는 것을 보았다. 그 중에서 월령 정보, 천문 현상, 출몰 시각을 이용하여 월령, 일출-몰 월출-몰, 달마다 일어나는 천문현상의 정보를 앱으로 간편하게 보고싶어 만들게 되었다.<br>
 
 화면<br>
-<img width="1104" alt="image" src="https://github.com/user-attachments/assets/4a6b8c08-0379-4537-8d43-5e899d7f000f"><br><br>
+<img width="1104" alt="image" src="https://github.com/user-attachments/assets/8f84251b-4460-4e7c-a505-c7192e52014e"><br><br>
 
 개발
 * Android Studio API 34
