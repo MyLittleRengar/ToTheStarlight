@@ -11,17 +11,8 @@
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="#08091B"
+        android:background="@color/mainBackground"
         android:gravity="center">
-
-        <ImageView
-            android:id="@+id/weatherIv"
-            android:layout_width="35dp"
-            android:layout_height="35dp"
-            android:layout_gravity="start|center_vertical"
-            android:layout_marginStart="15dp"
-            app:srcCompat="@drawable/baseline_wb_sunny_24"
-            tools:ignore="ContentDescription" />
 
         <TextView
             android:id="@+id/mainDateTv"
@@ -32,7 +23,7 @@
             android:layout_marginBottom="15dp"
             android:fontFamily="@font/cafe24surroundair"
             android:text="0000년 00월"
-            android:textColor="@color/white"
+            android:textColor="#fff"
             android:textSize="26sp"
             android:textStyle="bold" />
 
@@ -107,12 +98,17 @@
                 android:id="@+id/custom"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                app:anotherMonthsDaysLabelsColor="#909090"
+                app:anotherMonthsDaysLabelsColor="@color/gray"
                 app:eventsEnabled="true"
                 app:headerColor="@color/side"
                 app:selectionColor="@color/side"
                 app:selectionLabelColor="@color/sub"
                 app:selectionBetweenMonthsEnabled="true"
+                app:pagesColor="@color/white"
+                app:daysLabelsColor="@color/black"
+                app:headerLabelColor="#fff"
+                app:abbreviationsLabelsColor="@color/black"
+                app:abbreviationsBarColor="@color/white"
                 app:selectionDisabled="false"
                 app:todayLabelColor="@color/side"
                 app:typeface="@font/cafe24surround"
@@ -203,7 +199,7 @@
                                 android:layout_marginBottom="10dp"
                                 android:fontFamily="@font/cafe24surroundair"
                                 android:text="음력"
-                                android:textColor="#404040"
+                                android:textColor="@color/gray"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
 
@@ -215,7 +211,7 @@
                                 android:layout_marginBottom="10dp"
                                 android:fontFamily="@font/cafe24surroundair"
                                 android:text="0000-00-00"
-                                android:textColor="#404040"
+                                android:textColor="@color/gray"
                                 android:textSize="14sp"
                                 android:textStyle="bold" />
                         </LinearLayout>

@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.drawable.ColorDrawable
 import android.graphics.drawable.Drawable
 import android.os.AsyncTask
 import android.os.Bundle
@@ -18,6 +19,7 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -34,10 +36,8 @@ import com.project.tothestarlight.recycler.AstroItem
 import com.project.tothestarlight.recycler.AstroRecyclerAdapter
 import com.project.tothestarlight.recycler.LunItem
 import com.project.tothestarlight.recycler.RiseItem
-import com.project.tothestarlight.recycler.WeatherItem
 import com.project.tothestarlight.utility.AlarmUtils
 import com.project.tothestarlight.utility.convertSolarToLunar
-import com.project.tothestarlight.utility.getLocationCode
 import org.xmlpull.v1.XmlPullParser
 import org.xmlpull.v1.XmlPullParserException
 import org.xmlpull.v1.XmlPullParserFactory
@@ -47,9 +47,6 @@ import java.net.URL
 import java.net.URLEncoder
 import java.text.SimpleDateFormat
 import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.LocalTime
-import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.GregorianCalendar
@@ -63,7 +60,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private lateinit var custom: CalendarView
-    private lateinit var weatherIv: ImageView
     private lateinit var settingIv: ImageView
     private lateinit var openIv: ImageView
     private lateinit var closeIv: ImageView
@@ -84,7 +80,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var monthlyEventLl: LinearLayout
     private var openType: Boolean = true
 
-    private val loadingDialog = CircleProgressDialog()
+    private lateinit var loadingDialog: CircleProgressDialog
 
     val events = mutableListOf<EventDay>()
     private var lunItems = mutableListOf<LunItem>()
@@ -93,7 +89,6 @@ class MainActivity : AppCompatActivity() {
     private var datas = mutableListOf<AstroItem>()
     private var astroItems = mutableListOf<AstroItem>()
     private var riseItems = mutableListOf<RiseItem>()
-    private var weatherItems = mutableListOf<WeatherItem>()
 
     private var lunAge: String? = null
     private var solDay: String? = null
@@ -111,50 +106,27 @@ class MainActivity : AppCompatActivity() {
     private var moonRise: String? = null
     private var moonSet: String? = null
 
-    private var rnSt3Am: String? = null
-    private var rnSt3Pm: String? = null
-    private var rnSt4Am: String? = null
-    private var rnSt4Pm: String? = null
-    private var rnSt5Am: String? = null
-    private var rnSt5Pm: String? = null
-    private var rnSt6Am: String? = null
-    private var rnSt6Pm: String? = null
-    private var rnSt7Am: String? = null
-    private var rnSt7Pm: String? = null
-    private var rnSt8: String? = null
-    private var rnSt9: String? = null
-    private var rnSt10: String? = null
-    private var wf3Am: String? = null
-    private var wf3Pm: String? = null
-    private var wf4Am: String? = null
-    private var wf4Pm: String? = null
-    private var wf5Am: String? = null
-    private var wf5Pm: String? = null
-    private var wf6Am: String? = null
-    private var wf6Pm: String? = null
-    private var wf7Am: String? = null
-    private var wf7Pm: String? = null
-    private var wf8: String? = null
-    private var wf9: String? = null
-    private var wf10: String? = null
-
     private lateinit var urlBuilder1: StringBuilder
     private lateinit var urlBuilder2: StringBuilder
     private lateinit var urlBuilder3: StringBuilder
-    private lateinit var urlBuilder4: StringBuilder
 
     private lateinit var preference: SharedPreferences
     private var selectedLocation = ""
-    private var selectedWeatherLocation = ""
 
     private var isMoonImageLoaded = false
     private var isDataLoaded = false
     private var isRecyclerViewUpdated = false
 
+    private lateinit var nightModePf: SharedPreferences
+    private var savedNightMode = false
+
     @SuppressLint("SetTextI18n")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        loadingDialog.show(supportFragmentManager, loadingDialog.tag)
+        loadingDialog = CircleProgressDialog(this@MainActivity)
+
+        loadingDialog.window!!.setBackgroundDrawable(ColorDrawable(android.graphics.Color.TRANSPARENT))
+        loadingDialog.show()
 
         enableEdgeToEdge()
         val locale = Locale("ko", "KR")
@@ -169,7 +141,6 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         custom = findViewById(R.id.custom)
-        weatherIv = findViewById(R.id.weatherIv)
         settingIv = findViewById(R.id.settingIv)
         openIv = findViewById(R.id.openIv)
         closeIv = findViewById(R.id.closeIv)
@@ -191,22 +162,20 @@ class MainActivity : AppCompatActivity() {
 
         preference = getSharedPreferences("location", 0)
 
-        val dateTime = LocalDateTime.now()
-        val formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmm")
-        val sixAm = LocalTime.of(6, 0)
-        val sixPm = LocalTime.of(18, 0 )
+        nightModePf = getSharedPreferences("night", 0)
+        val night = nightModePf.getString("night", "").toString()
 
-        val currentTime = dateTime.toLocalTime()
-
-        val resultDateTime: LocalDateTime =
-            if(currentTime.isBefore(sixAm)) {
-                LocalDateTime.of(dateTime.toLocalDate().minusDays(1), sixPm)
-            } else if(currentTime.isBefore(sixPm)) {
-                LocalDateTime.of(dateTime.toLocalDate(), sixAm)
-            } else {
-                LocalDateTime.of(dateTime.toLocalDate(), sixPm)
-            }
-        val formattedResult = resultDateTime.format(formatter)
+        savedNightMode = when (night) {
+            "" -> { false }
+            "true" -> { true }
+            else -> { false }
+        }
+        if(savedNightMode) {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        }
+        else {
+            AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        }
 
         val maxCalendar = Calendar.getInstance()
         maxCalendar.add(Calendar.MONTH, 3)
@@ -224,32 +193,22 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        selectedWeatherLocation = preference.getString("weatherLocation", "").toString()
-
         val dateSplit = getCurrentDate().split("-")
         val currentDate = dateSplit[0]+dateSplit[1]+dateSplit[2]
 
         urlBuilder1 = StringBuilder(BuildConfig.API_ASTRO)
         urlBuilder2 = StringBuilder(BuildConfig.API_MOON)
         urlBuilder3 = StringBuilder(BuildConfig.API_RISE)
-        urlBuilder4 = StringBuilder(BuildConfig.API_WEATHER)
         makeUrlBuilder1(dateSplit[0], dateSplit[1])
         makeUrlBuilder2(dateSplit[0], dateSplit[1])
         makeUrlBuilder3(currentDate, selectedLocation)
-        makeUrlBuilder4(formattedResult, getLocationCode(selectedWeatherLocation)!!)
         xmlParsing1()
         xmlParsing2()
         xmlParsing3()
-        xmlParsing4()
 
         mainDateTv.text = dateSplit[0] + "년" + dateSplit[1] + "월"
 
         monthlyEventTv.text = dateSplit[1]
-
-        weatherIv.setOnClickListener {
-            startActivity(Intent(this@MainActivity, WeatherActivity::class.java))
-            finish()
-        }
 
         settingIv.setOnClickListener {
             startActivity(Intent(this@MainActivity, SettingActivity::class.java))
@@ -274,7 +233,6 @@ class MainActivity : AppCompatActivity() {
                 lunarTv.text = convert
 
                 val combineDate = year.toString()+month+ day
-                Log.e("@@@@", combineDate)
                 urlBuilder3.apply {
                     clear()
                     append(BuildConfig.API_RISE)
@@ -286,13 +244,8 @@ class MainActivity : AppCompatActivity() {
                 for (i in 0 until lunItems.size) {
                     if (lunItems[i].solDay == day) {
                         moonAgeTv.text = lunItems[i].lunAge
-                        val drawableId = resources.getIdentifier(
-                            "moon_shape${floor(lunItems[i].lunAge.toDouble()).toInt()}",
-                            "drawable",
-                            packageName
-                        )
-                        val drawable: Drawable? =
-                            ContextCompat.getDrawable(this@MainActivity, drawableId)
+                        val drawableId = resources.getIdentifier("moon_shape${floor(lunItems[i].lunAge.toDouble()).toInt()}", "drawable", packageName)
+                        val drawable: Drawable? = ContextCompat.getDrawable(this@MainActivity, drawableId)
                         moonShapeIv.setImageDrawable(drawable)
                     }
                 }
@@ -537,22 +490,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun makeUrlBuilder4(date: String, location: String) {
-        //Log.d("parsingLog", "makeUrlBuilder4 실행됨")
-        try {
-            urlBuilder4.append("?" + URLEncoder.encode("ServiceKey", "UTF-8") + "=" + BuildConfig.API_KEY)
-            urlBuilder4.append("&" + URLEncoder.encode("pageNo", "UTF-8") + "=" + URLEncoder.encode("1", "UTF-8")) // 페이지 수
-            urlBuilder4.append("&" + URLEncoder.encode("numOfRows", "UTF-8") + "=" + URLEncoder.encode("10", "UTF-8")) // 결과 수
-            urlBuilder4.append("&" + URLEncoder.encode("dataType", "UTF-8") + "=" + URLEncoder.encode("XML", "UTF-8")) // 요청 자료 형식
-            urlBuilder4.append("&" + URLEncoder.encode("regId", "UTF-8") + "=" + URLEncoder.encode(location, "UTF-8")) // 지역 코드
-            urlBuilder4.append("&" + URLEncoder.encode("tmFc", "UTF-8") + "=" + URLEncoder.encode(date, "UTF-8")) // 날짜, 시간
-            Log.d("parsingLog", "url4: $urlBuilder4")
-
-        } catch (e: IOException) {
-            e.printStackTrace()
-        }
-    }
-
     private fun xmlParsing1() {
         try {
             val url = URL(urlBuilder2.toString())
@@ -580,17 +517,6 @@ class MainActivity : AppCompatActivity() {
             val url = URL(urlBuilder3.toString())
 
             val task = XMLTask3()
-            task.execute(url)
-        } catch (e: MalformedURLException) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun xmlParsing4() {
-        try {
-            val url = URL(urlBuilder4.toString())
-
-            val task = XMLTask4()
             task.execute(url)
         } catch (e: MalformedURLException) {
             e.printStackTrace()
@@ -689,11 +615,7 @@ class MainActivity : AppCompatActivity() {
 
             val date = LocalDate.now()
             val divideDate = date.toString().split("-")
-            lunarTv.text = convertSolarToLunar(
-                divideDate[0].toInt(),
-                divideDate[1].toInt(),
-                divideDate[2].toInt()
-            )
+            lunarTv.text = convertSolarToLunar(divideDate[0].toInt(), divideDate[1].toInt(), divideDate[2].toInt())
             for (i in 0 until lunItems.size) {
                 if (lunItems[i].solMonth == divideDate[1] && lunItems[i].solDay == divideDate[2]) {
                     moonAgeTv.text = lunItems[i].lunAge
@@ -889,233 +811,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @SuppressLint("StaticFieldLeak")
-    inner class XMLTask4 : AsyncTask<URL?, Void?, Unit?>() {
-
-        @Deprecated("Deprecated in Java")
-        override fun doInBackground(vararg urls: URL?) {
-            val myUrl = urls[0]
-            try {
-                val `is` = myUrl?.openStream()
-                val factory = XmlPullParserFactory.newInstance()
-                val parser = factory.newPullParser()
-
-                parser.setInput(`is`, "UTF8")
-                var eventType = parser.eventType
-                var tagName: String?
-
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    when (eventType) {
-                        XmlPullParser.START_TAG -> {
-                            tagName = parser.name
-                            when (tagName) {
-                                "rnSt3Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt3Am = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "rnSt3Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt3Pm = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "rnSt4Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt4Am = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "rnSt4Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt4Pm = text
-                                    //Log.e("sunSet", text)
-                                }
-                                "rnSt5Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt5Am = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "rnSt5Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt5Pm = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "rnSt6Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt6Am = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "rnSt6Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt6Pm = text
-                                    //Log.e("sunSet", text)
-                                }
-
-                                "rnSt7Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt7Am = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "rnSt7Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt7Pm = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "rnSt8" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt8 = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "rnSt9" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt9 = text
-                                    //Log.e("sunSet", text)
-                                }
-
-                                "rnSt10" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    rnSt10 = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "wf3Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf3Am = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "wf3Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf3Pm = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "wf4Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf4Am = text
-                                    //Log.e("sunSet", text)
-                                }
-                                "wf4Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf4Pm = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "wf5Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf5Am = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "wf5Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf5Pm = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "wf6Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf6Am = text
-                                    //Log.e("sunSet", text)
-                                }
-
-                                "wf6Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf6Pm = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "wf7Am" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf7Am = text
-                                    //Log.e("moonSet", text)
-                                }
-                                "wf7Pm" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf7Pm = text
-                                    //Log.e("sunRise", text)
-                                }
-
-                                "wf8" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf8 = text
-                                    //Log.e("sunSet", text)
-                                }
-
-                                "wf9" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf9 = text
-                                    //Log.e("moonRise", text)
-                                }
-
-                                "wf10" -> {
-                                    parser.next()
-                                    val text = parser.text ?: ""
-                                    wf10 = text
-                                    //Log.e("moonSet", text)
-                                }
-                            }
-                        }
-
-                        XmlPullParser.END_TAG -> {
-                            tagName = parser.name
-                            if (tagName == "item") {
-                                weatherItems.add(WeatherItem(rnSt3Am,rnSt3Pm,rnSt4Am,rnSt4Pm,rnSt5Am,rnSt5Pm,rnSt6Am,rnSt6Pm,rnSt7Am,rnSt7Pm,rnSt8,rnSt9,rnSt10,wf3Am,wf3Pm,wf4Am,wf4Pm,wf5Am,wf5Pm,wf6Am,wf6Pm,wf7Am,wf7Pm,wf8,wf9,wf10))
-                                Log.e("@@@@@", weatherItems.toString())
-                            }
-                        }
-                    }
-                    eventType = parser.next()
-                }
-            } catch (e: XmlPullParserException) {
-                e.printStackTrace()
-            } catch (e: IOException) {
-                e.printStackTrace()
-            }
-        }
-
-        @Deprecated("Deprecated in Java")
-        override fun onPostExecute(result: Unit?) {
-            super.onPostExecute(result)
-
-            sunRiseTv.text = riseItems[0].sunRise!!.trim().chunked(2).joinToString(":")
-            moonRiseTv.text = riseItems[0].moonRise!!.trim().chunked(2).joinToString(":")
-            sunSetTv.text = riseItems[0].sunSet!!.trim().chunked(2).joinToString(":")
-            moonSetTv.text = riseItems[0].moonSet!!.trim().chunked(2).joinToString(":")
-
-            isDataLoaded = true
-            checkIfAllTasksCompleted()
-        }
-    }
-
     private var backPressedTime: Long = 0
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
@@ -1129,8 +824,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun showLoadingDialog(): Boolean {
-        val existingDialog = supportFragmentManager.findFragmentByTag("CircleProgressDialog")
-        return existingDialog == null
+        return !loadingDialog.isShowing
     }
 
     private fun checkIfAllTasksCompleted() {

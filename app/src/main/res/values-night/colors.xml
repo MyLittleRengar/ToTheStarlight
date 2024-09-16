@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FFFFFFFF</color> <!-- 기본 모드의 흰색처럼 사용 -->
+    <color name="white">#FF000000</color> <!-- 기본 모드의 검정처럼 사용 -->
+    <color name="gray">#B0B0B0</color> <!-- 좀 더 밝은 회색 -->
+    <color name="white_gray">#A0A0A0</color> <!-- 조금 더 밝게 -->
+    <color name="main">#34495E</color> <!-- 다크 모드에서의 메인 색상 -->
+    <color name="side">#FF9A8C</color> <!-- 사이드 색상을 조금 더 밝게 -->
+    <color name="sub">#F1C40F</color> <!-- 서브 색상을 약간 밝게 -->
+    <color name="mainBackground">#101123</color> <!-- 다크 모드 배경 -->
+</resources>

@@ -26,9 +26,6 @@ android {
         buildConfigField("String", "API_MOON", "${properties["url.moon"]}")
         buildConfigField("String", "API_ASTRO", "${properties["url.astro"]}")
         buildConfigField("String", "API_RISE", "${properties["url.rise"]}")
-        buildConfigField("String", "API_WEATHER", "${properties["url.weather"]}")
-        buildConfigField("String", "API_SHRTWEATHER", "${properties["url.shrtweather"]}")
-        buildConfigField("String", "API_VERYSHRTWEATHER", "${properties["url.veryshrtweather"]}")
     }
 
     buildTypes {
